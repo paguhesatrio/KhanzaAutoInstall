@@ -1,6 +1,6 @@
 # =====================================================================
 #  update-khanza.ps1
-#  Sinkronkan D:\ClientKhanza dengan share Samba read-only (via symlink)
+#  Sinkronkan folder ClientKhanza lokal dengan share Samba read-only (via symlink)
 #  - File/folder di server  -> dibuat symlink di target (ikut update)
 #  - Folder setting & cache -> jadi folder LOKAL (bisa ditulis)
 #  - database.xml           -> TIDAK disentuh (config lokal per-PC)
@@ -9,10 +9,23 @@
 
 # ---------- PENGATURAN (ubah sesuai kebutuhan) ----------
 $source       = "\\172.16.17.222\ClientKhanza"    # share Samba di server
-$target       = "D:\ClientKhanza"           # folder lokal tujuan
-$localFolders = @("setting", "cache")       # folder yang jadi lokal (writable)
-$skipFiles    = @("database.xml")           # file lokal per-PC, jangan disentuh
+$localFolders = @("setting", "cache")             # folder yang jadi lokal (writable)
+$skipFiles    = @("database.xml")                 # file lokal per-PC, jangan disentuh
+
+# Kandidat lokasi target, dicari berurutan: D dulu, lalu C
+$targetCandidates = @("D:\ClientKhanza", "C:\ClientKhanza")
 # --------------------------------------------------------
+
+# ---------- PENCARIAN FOLDER TARGET ----------
+$target = $targetCandidates | Where-Object { Test-Path $_ } | Select-Object -First 1
+
+if (-not $target) {
+    $target = "D:\ClientKhanza"
+    Write-Host "ClientKhanza tidak ditemukan di D maupun C, akan dibuat di $target" -ForegroundColor Yellow
+} else {
+    Write-Host "ClientKhanza ditemukan di: $target" -ForegroundColor Green
+}
+# ---------------------------------------------
 
 # --- Hubungkan ke share dengan kredensial (untuk sesi Administrator) ---
 $smbUser = "client"
