@@ -21,7 +21,14 @@ if %errorlevel% neq 0 (
     exit /b
 )
 
-set "BASE=D:\ClientKhanza"
+REM --- Tentukan lokasi instalasi: D dulu, kalau tidak ada baru C ---
+REM     (harus sama persis dengan logika di "2. update.bat")
+if exist "D:\ClientKhanza\" (
+    set "BASE=D:\ClientKhanza"
+) else (
+    set "BASE=C:\ClientKhanza"
+)
+
 set "SETTING=%BASE%\setting"
 set "KUMPULAN=%SETTING%\kumpulan xml"
 set "ICON_APP=%BASE%\rspmk.ico"
@@ -30,6 +37,14 @@ set "TARGET_APP=%BASE%\Aplikasi.bat"
 set "UPDATEDIR=%~dp0"
 set "UPDATEBAT=%UPDATEDIR%2. update.bat"
 set "SERVER=\\172.16.17.222\ClientKhanza"
+
+if not exist "%BASE%\" (
+    echo ERROR: folder "%BASE%" tidak ditemukan.
+    echo Jalankan "2. update.bat" lebih dulu.
+    goto :selesai
+)
+echo Lokasi instalasi terdeteksi: %BASE%
+echo.
 
 REM --- Autentikasi sesi admin ke server (untuk baca folder via symlink) ---
 net use "%SERVER%" /user:client rsudpmk26 >nul 2>&1
